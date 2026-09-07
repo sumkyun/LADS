@@ -1,0 +1,724 @@
+{
+  "cases": {
+    "burgers": {
+      "variables": [
+        "x",
+        "t"
+      ],
+      "bounds": {
+        "x": [
+          -5.0,
+          5.0
+        ],
+        "t": [
+          0.0,
+          2.0
+        ]
+      },
+      "operator_residual": "d1_t+u*d1_x-0.01*d2_x",
+      "derivatives": {
+        "d1_t": {
+          "variable": "t",
+          "order": 1
+        },
+        "d1_x": {
+          "variable": "x",
+          "order": 1
+        },
+        "d2_x": {
+          "variable": "x",
+          "order": 2
+        }
+      },
+      "operator_weight": 1.0,
+      "conditions": [
+        {
+          "assign": {
+            "t": 0.0
+          },
+          "sample_variables": [
+            "x"
+          ],
+          "target": "0.86+0.6*tanh(-30*x+9.9)",
+          "weight": 1.0
+        }
+      ],
+      "training": {
+        "operator_counts": {
+          "x": 41,
+          "t": 23
+        },
+        "condition_count": 101,
+        "midpoint": false
+      },
+      "validation": {
+        "operator_counts": {
+          "x": 42,
+          "t": 24
+        },
+        "condition_count": 100,
+        "midpoint": true
+      }
+    },
+    "poisson1": {
+      "variables": [
+        "x",
+        "y"
+      ],
+      "bounds": {
+        "x": [
+          0.0,
+          1.0
+        ],
+        "y": [
+          0.0,
+          1.0
+        ]
+      },
+      "operator_residual": "d2_x+d2_y+2*pi**2*sin(pi*x)*sin(pi*y)",
+      "derivatives": {
+        "d2_x": {
+          "variable": "x",
+          "order": 2
+        },
+        "d2_y": {
+          "variable": "y",
+          "order": 2
+        }
+      },
+      "operator_weight": 1.0,
+      "conditions": [
+        {
+          "assign": {
+            "x": 0.0
+          },
+          "sample_variables": [
+            "y"
+          ],
+          "target": "0",
+          "weight": 0.25
+        },
+        {
+          "assign": {
+            "x": 1.0
+          },
+          "sample_variables": [
+            "y"
+          ],
+          "target": "0",
+          "weight": 0.25
+        },
+        {
+          "assign": {
+            "y": 0.0
+          },
+          "sample_variables": [
+            "x"
+          ],
+          "target": "0",
+          "weight": 0.25
+        },
+        {
+          "assign": {
+            "y": 1.0
+          },
+          "sample_variables": [
+            "x"
+          ],
+          "target": "0",
+          "weight": 0.25
+        }
+      ],
+      "training": {
+        "operator_counts": {
+          "x": 31,
+          "y": 33
+        },
+        "condition_count": 47,
+        "midpoint": false
+      },
+      "validation": {
+        "operator_counts": {
+          "x": 32,
+          "y": 34
+        },
+        "condition_count": 48,
+        "midpoint": true
+      }
+    },
+    "advection3": {
+      "variables": [
+        "x",
+        "y",
+        "t"
+      ],
+      "bounds": {
+        "x": [
+          0.0,
+          1.0
+        ],
+        "y": [
+          0.0,
+          1.0
+        ],
+        "t": [
+          0.0,
+          2.0
+        ]
+      },
+      "operator_residual": "d1_t+d1_x+d1_y",
+      "derivatives": {
+        "d1_t": {
+          "variable": "t",
+          "order": 1
+        },
+        "d1_x": {
+          "variable": "x",
+          "order": 1
+        },
+        "d1_y": {
+          "variable": "y",
+          "order": 1
+        }
+      },
+      "operator_weight": 1.0,
+      "conditions": [
+        {
+          "assign": {
+            "t": 0.0
+          },
+          "sample_variables": [
+            "x",
+            "y"
+          ],
+          "target": "sin(x)+sin(y)",
+          "weight": 1.0
+        }
+      ],
+      "training": {
+        "operator_counts": {
+          "x": 13,
+          "y": 15,
+          "t": 17
+        },
+        "condition_count": 25,
+        "midpoint": false
+      },
+      "validation": {
+        "operator_counts": {
+          "x": 14,
+          "y": 16,
+          "t": 18
+        },
+        "condition_count": 26,
+        "midpoint": true
+      }
+    },
+    "wave2d": {
+      "variables": [
+        "x",
+        "y",
+        "t"
+      ],
+      "bounds": {
+        "x": [
+          -1.0,
+          1.0
+        ],
+        "y": [
+          -1.0,
+          1.0
+        ],
+        "t": [
+          0.0,
+          1.0
+        ]
+      },
+      "operator_residual": "d2_t-d2_x-d2_y+u+u**3-((0.25-4*x**2)*exp(x**2-0.5*t)+exp(3*x**2-1.5*t)*sin(y)**2)*sin(y)",
+      "derivatives": {
+        "d2_t": {
+          "variable": "t",
+          "order": 2
+        },
+        "d2_x": {
+          "variable": "x",
+          "order": 2
+        },
+        "d2_y": {
+          "variable": "y",
+          "order": 2
+        }
+      },
+      "operator_weight": 1.0,
+      "conditions": [
+        {
+          "assign": {
+            "t": 0.0
+          },
+          "sample_variables": [
+            "x",
+            "y"
+          ],
+          "target": "exp(x**2)*sin(y)",
+          "weight": 1.0
+        },
+        {
+          "assign": {
+            "x": -1.0
+          },
+          "sample_variables": [
+            "y",
+            "t"
+          ],
+          "target": "exp(x**2)*sin(y)*exp(-0.5*t)",
+          "weight": 0.25
+        },
+        {
+          "assign": {
+            "x": 1.0
+          },
+          "sample_variables": [
+            "y",
+            "t"
+          ],
+          "target": "exp(x**2)*sin(y)*exp(-0.5*t)",
+          "weight": 0.25
+        },
+        {
+          "assign": {
+            "y": -1.0
+          },
+          "sample_variables": [
+            "x",
+            "t"
+          ],
+          "target": "exp(x**2)*sin(y)*exp(-0.5*t)",
+          "weight": 0.25
+        },
+        {
+          "assign": {
+            "y": 1.0
+          },
+          "sample_variables": [
+            "x",
+            "t"
+          ],
+          "target": "exp(x**2)*sin(y)*exp(-0.5*t)",
+          "weight": 0.25
+        }
+      ],
+      "training": {
+        "operator_counts": {
+          "x": 11,
+          "y": 13,
+          "t": 15
+        },
+        "condition_count": 21,
+        "midpoint": false
+      },
+      "validation": {
+        "operator_counts": {
+          "x": 12,
+          "y": 14,
+          "t": 16
+        },
+        "condition_count": 22,
+        "midpoint": true
+      }
+    },
+    "kdv": {
+      "variables": [
+        "x",
+        "t"
+      ],
+      "bounds": {
+        "x": [
+          -10.0,
+          10.0
+        ],
+        "t": [
+          0.0,
+          1.0
+        ]
+      },
+      "operator_residual": "d1_t+6*u*d1_x+d3_x",
+      "derivatives": {
+        "d1_t": {
+          "variable": "t",
+          "order": 1
+        },
+        "d1_x": {
+          "variable": "x",
+          "order": 1
+        },
+        "d3_x": {
+          "variable": "x",
+          "order": 3
+        }
+      },
+      "operator_weight": 1.0,
+      "conditions": [
+        {
+          "assign": {
+            "t": 0.0
+          },
+          "sample_variables": [
+            "x"
+          ],
+          "target": "2*sech(x)**2",
+          "weight": 1.0
+        }
+      ],
+      "training": {
+        "operator_counts": {
+          "x": 51,
+          "t": 27
+        },
+        "condition_count": 101,
+        "midpoint": false
+      },
+      "validation": {
+        "operator_counts": {
+          "x": 52,
+          "t": 28
+        },
+        "condition_count": 100,
+        "midpoint": true
+      }
+    },
+    "diffusion": {
+      "variables": [
+        "x",
+        "t"
+      ],
+      "bounds": {
+        "x": [
+          0.0,
+          1.397
+        ],
+        "t": [
+          0.0,
+          1.0
+        ]
+      },
+      "operator_residual": "d1_t-0.697*d2_x",
+      "derivatives": {
+        "d1_t": {
+          "variable": "t",
+          "order": 1
+        },
+        "d2_x": {
+          "variable": "x",
+          "order": 2
+        }
+      },
+      "operator_weight": 1.0,
+      "conditions": [
+        {
+          "assign": {
+            "t": 0.0
+          },
+          "sample_variables": [
+            "x"
+          ],
+          "target": "3.974*(sin(pi*x/1.397)-sin(3*pi*x/1.397)+sin(5*pi*x/1.397))",
+          "weight": 1.0
+        },
+        {
+          "assign": {
+            "x": 0.0
+          },
+          "sample_variables": [
+            "t"
+          ],
+          "target": "0",
+          "weight": 0.5
+        },
+        {
+          "assign": {
+            "x": 1.397
+          },
+          "sample_variables": [
+            "t"
+          ],
+          "target": "0",
+          "weight": 0.5
+        }
+      ],
+      "training": {
+        "operator_counts": {
+          "x": 43,
+          "t": 29
+        },
+        "condition_count": 79,
+        "midpoint": false
+      },
+      "validation": {
+        "operator_counts": {
+          "x": 44,
+          "t": 30
+        },
+        "condition_count": 80,
+        "midpoint": true
+      }
+    },
+    "poisson_gauss_2": {
+      "variables": [
+        "x",
+        "y"
+      ],
+      "bounds": {
+        "x": [
+          0.0,
+          1.0
+        ],
+        "y": [
+          0.0,
+          1.0
+        ]
+      },
+      "operator_residual": "d2_x+d2_y+exp(-((x-0.3)**2+(y-0.5)**2)/(2*0.1**2))+exp(-((x-0.7)**2+(y-0.2)**2)/(2*0.1**2))",
+      "derivatives": {
+        "d2_x": {
+          "variable": "x",
+          "order": 2
+        },
+        "d2_y": {
+          "variable": "y",
+          "order": 2
+        }
+      },
+      "operator_weight": 1.0,
+      "conditions": [
+        {
+          "assign": {
+            "x": 0.0
+          },
+          "sample_variables": [
+            "y"
+          ],
+          "target": "0",
+          "weight": 0.25
+        },
+        {
+          "assign": {
+            "x": 1.0
+          },
+          "sample_variables": [
+            "y"
+          ],
+          "target": "0",
+          "weight": 0.25
+        },
+        {
+          "assign": {
+            "y": 0.0
+          },
+          "sample_variables": [
+            "x"
+          ],
+          "target": "0",
+          "weight": 0.25
+        },
+        {
+          "assign": {
+            "y": 1.0
+          },
+          "sample_variables": [
+            "x"
+          ],
+          "target": "0",
+          "weight": 0.25
+        }
+      ],
+      "training": {
+        "operator_counts": {
+          "x": 35,
+          "y": 37
+        },
+        "condition_count": 53,
+        "midpoint": false
+      },
+      "validation": {
+        "operator_counts": {
+          "x": 36,
+          "y": 38
+        },
+        "condition_count": 54,
+        "midpoint": true
+      }
+    },
+    "poisson_gauss_3": {
+      "variables": [
+        "x",
+        "y"
+      ],
+      "bounds": {
+        "x": [
+          0.0,
+          1.0
+        ],
+        "y": [
+          0.0,
+          1.0
+        ]
+      },
+      "operator_residual": "d2_x+d2_y+exp(-((x-0.3)**2+(y-0.8)**2)/(2*0.1**2))+exp(-((x-0.7)**2+(y-0.8)**2)/(2*0.1**2))+exp(-((x-0.5)**2+(y-0.2)**2)/(2*0.1**2))",
+      "derivatives": {
+        "d2_x": {
+          "variable": "x",
+          "order": 2
+        },
+        "d2_y": {
+          "variable": "y",
+          "order": 2
+        }
+      },
+      "operator_weight": 1.0,
+      "conditions": [
+        {
+          "assign": {
+            "x": 0.0
+          },
+          "sample_variables": [
+            "y"
+          ],
+          "target": "0",
+          "weight": 0.25
+        },
+        {
+          "assign": {
+            "x": 1.0
+          },
+          "sample_variables": [
+            "y"
+          ],
+          "target": "0",
+          "weight": 0.25
+        },
+        {
+          "assign": {
+            "y": 0.0
+          },
+          "sample_variables": [
+            "x"
+          ],
+          "target": "0",
+          "weight": 0.25
+        },
+        {
+          "assign": {
+            "y": 1.0
+          },
+          "sample_variables": [
+            "x"
+          ],
+          "target": "0",
+          "weight": 0.25
+        }
+      ],
+      "training": {
+        "operator_counts": {
+          "x": 35,
+          "y": 37
+        },
+        "condition_count": 53,
+        "midpoint": false
+      },
+      "validation": {
+        "operator_counts": {
+          "x": 36,
+          "y": 38
+        },
+        "condition_count": 54,
+        "midpoint": true
+      }
+    },
+    "poisson_gauss_4": {
+      "variables": [
+        "x",
+        "y"
+      ],
+      "bounds": {
+        "x": [
+          0.0,
+          1.0
+        ],
+        "y": [
+          0.0,
+          1.0
+        ]
+      },
+      "operator_residual": "d2_x+d2_y+exp(-((x-0.3)**2+(y-0.5)**2)/(2*0.1**2))+exp(-((x-0.7)**2+(y-0.5)**2)/(2*0.1**2))+exp(-((x-0.5)**2+(y-0.2)**2)/(2*0.1**2))+exp(-((x-0.5)**2+(y-0.7)**2)/(2*0.1**2))",
+      "derivatives": {
+        "d2_x": {
+          "variable": "x",
+          "order": 2
+        },
+        "d2_y": {
+          "variable": "y",
+          "order": 2
+        }
+      },
+      "operator_weight": 1.0,
+      "conditions": [
+        {
+          "assign": {
+            "x": 0.0
+          },
+          "sample_variables": [
+            "y"
+          ],
+          "target": "0",
+          "weight": 0.25
+        },
+        {
+          "assign": {
+            "x": 1.0
+          },
+          "sample_variables": [
+            "y"
+          ],
+          "target": "0",
+          "weight": 0.25
+        },
+        {
+          "assign": {
+            "y": 0.0
+          },
+          "sample_variables": [
+            "x"
+          ],
+          "target": "0",
+          "weight": 0.25
+        },
+        {
+          "assign": {
+            "y": 1.0
+          },
+          "sample_variables": [
+            "x"
+          ],
+          "target": "0",
+          "weight": 0.25
+        }
+      ],
+      "training": {
+        "operator_counts": {
+          "x": 35,
+          "y": 37
+        },
+        "condition_count": 53,
+        "midpoint": false
+      },
+      "validation": {
+        "operator_counts": {
+          "x": 36,
+          "y": 38
+        },
+        "condition_count": 54,
+        "midpoint": true
+      }
+    }
+  }
+}
