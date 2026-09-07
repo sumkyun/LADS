@@ -20,9 +20,9 @@ from typing import Any
 import sympy as sp
 
 from .coefficient_fitting import (
-    BFGSConfigV1,
+    LBFGSBConfigV1,
     CollocationResidualV1,
-    fit_expression_coefficients_bfgs,
+    fit_expression_coefficients_lbfgsb,
 )
 from .llm_provider import LLMBatchProviderV1, LLMResponseError
 from .safe_symbolic import SafeSymbolicError, parse_symbolic_expression
@@ -428,13 +428,13 @@ def fit_and_select_public_candidates(
     case_ids: Sequence[str],
     validation_specs: Mapping[str, Mapping[str, Any]],
     *,
-    config: BFGSConfigV1 | None = None,
+    config: LBFGSBConfigV1 | None = None,
 ) -> tuple[dict[str, Any], ...]:
     """Fit every LLM candidate and select solely by disjoint public validation loss."""
 
     if len(generated_cases) != len(case_ids):
         raise ValueError("generated case and case-id counts differ")
-    selected_config = config or BFGSConfigV1(
+    selected_config = config or LBFGSBConfigV1(
         max_iterations=800,
         gradient_tolerance=1.0e-9,
         restarts=6,
@@ -456,7 +456,7 @@ def fit_and_select_public_candidates(
                 coefficients = tuple(sp.Symbol(name) for name in candidate["parameters"])
                 if coefficients:
                     training = _residual_terms(expression, coefficients, spec, split="training")
-                    fit = fit_expression_coefficients_bfgs(
+                    fit = fit_expression_coefficients_lbfgsb(
                         expression,
                         coefficients,
                         training,

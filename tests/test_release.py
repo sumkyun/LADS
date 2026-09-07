@@ -5,9 +5,16 @@ import subprocess
 import sys
 from pathlib import Path
 
+import sympy as sp
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+from lads.coefficient_fitting import (  # noqa: E402
+    CollocationResidualV1,
+    LBFGSBConfigV1,
+    fit_expression_coefficients_lbfgsb,
+)
 from lads.llm_provider import InMemoryLLMBatchProviderV1  # noqa: E402
 from lads.permissive_direct import run_staged_experiment_direct  # noqa: E402
 
@@ -28,6 +35,26 @@ def test_cli_dry_run() -> None:
         text=True,
     )
     assert json.loads(completed.stdout) == {"case_count": 1, "cases": ["burgers"]}
+
+
+def test_coefficient_fit_uses_limited_memory_bfgs() -> None:
+    coefficient, x = sp.symbols("coefficient x")
+    fit = fit_expression_coefficients_lbfgsb(
+        coefficient * x,
+        (coefficient,),
+        (
+            CollocationResidualV1(
+                "target",
+                coefficient * x - 2.0,
+                (x,),
+                ((1.0,),),
+            ),
+        ),
+        config=LBFGSBConfigV1(max_iterations=50, restarts=1),
+    )
+    assert fit.optimizer_converged
+    assert fit.accepted
+    assert abs(dict(fit.coefficient_assignments)["coefficient"] - 2.0) < 1.0e-6
 
 
 def test_model_path_runs_without_network() -> None:

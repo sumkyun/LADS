@@ -30,7 +30,7 @@ from .atom_tree_feedback import (
     request_bound_atoms,
     request_tree_batch,
 )
-from .coefficient_fitting import BFGSConfigV1, fit_expression_coefficients_bfgs
+from .coefficient_fitting import LBFGSBConfigV1, fit_expression_coefficients_lbfgsb
 from .condition_aware_solution import _residual_terms
 from .llm_ansatz import (
     LLMAnsatzBatchCompletionV1,
@@ -1013,7 +1013,7 @@ def screen_semantic_candidate_beam(
     *,
     max_candidates: int,
 ) -> tuple[Mapping[str, Any], ...]:
-    """Evaluate every assembled structure once, then send only the best NMSE rows to BFGS."""
+    """Evaluate every assembled structure once, then send only the best NMSE rows to L-BFGS-B."""
 
     if max_candidates < 1:
         raise ValueError("max_candidates must be positive")
@@ -1157,7 +1157,7 @@ def coefficient_initial_guesses(
     return tuple(guesses)
 
 
-def optimizer_config_for_slot_count(slot_count: int) -> BFGSConfigV1:
+def optimizer_config_for_slot_count(slot_count: int) -> LBFGSBConfigV1:
     """Scale the optimizer budget using the paper-calibrated diagnostic threshold.
 
     ``acceptance_loss`` is a reporting/selection flag in this development lane, not
@@ -1168,7 +1168,7 @@ def optimizer_config_for_slot_count(slot_count: int) -> BFGSConfigV1:
 
     if isinstance(slot_count, bool) or not isinstance(slot_count, int) or slot_count < 1:
         raise ValueError("slot_count must be a positive integer")
-    return BFGSConfigV1(
+    return LBFGSBConfigV1(
         max_iterations=min(900, 300 + 75 * (slot_count - 1)),
         gradient_tolerance=1.0e-8,
         restarts=min(10, 6 + (slot_count - 1) // 2),
@@ -1204,7 +1204,7 @@ def fit_scalar_candidates(
             training = _residual_terms(expression, coefficients, validation_spec, split="training")
             normalized_training = normalize_residual_terms(training, training_energies)
             if coefficients:
-                fit = fit_expression_coefficients_bfgs(
+                fit = fit_expression_coefficients_lbfgsb(
                     expression,
                     coefficients,
                     normalized_training,
@@ -2611,7 +2611,7 @@ def run_staged_experiment(
             "assembly": "bounded 1024-candidate Cartesian beam across slot pools",
             "semantic_fit_beam": (
                 "evaluate fixed-initialization residual NMSE for every assembled candidate, "
-                "then send only the best bounded subset to multi-start BFGS"
+                "then send only the best bounded subset to multi-start L-BFGS-B"
             ),
             "max_atom_combinations_per_ansatz": MAX_ATOM_COMBINATIONS,
             "residual_screening": {
@@ -2647,7 +2647,7 @@ def run_staged_experiment(
             ),
             "max_fitted_coefficients": MAX_FITTED_COEFFICIENTS,
             "optimizer": {
-                "name": "BFGS",
+                "name": "L-BFGS-B",
                 "max_iterations": "min(900, 300 + 75*(slot_count-1))",
                 "gradient_tolerance": 1.0e-8,
                 "restarts": "min(10, 6 + floor((slot_count-1)/2))",

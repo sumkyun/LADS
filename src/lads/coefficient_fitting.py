@@ -1,4 +1,4 @@
-"""BFGS fitting for coefficients in a symbolic expression.
+"""L-BFGS-B fitting for coefficients in a symbolic expression.
 
 The fitter is intentionally independent of a particular PDE.  Callers provide
 one or more residual expressions and the collocation points at which each
@@ -20,8 +20,8 @@ _NONFINITE_PENALTY = 1.0e100
 
 
 @dataclass(frozen=True)
-class BFGSConfigV1:
-    """Deterministic multi-start BFGS budget and acceptance rule."""
+class LBFGSBConfigV1:
+    """Deterministic multi-start L-BFGS-B budget and acceptance rule."""
 
     max_iterations: int = 500
     gradient_tolerance: float = 1.0e-8
@@ -69,8 +69,8 @@ class CollocationResidualV1:
 
 
 @dataclass(frozen=True)
-class BFGSCoefficientFitV1:
-    """Best fit selected from every deterministic BFGS restart."""
+class LBFGSBCoefficientFitV1:
+    """Best fit selected from every deterministic L-BFGS-B restart."""
 
     accepted: bool
     optimizer_converged: bool
@@ -88,7 +88,7 @@ class BFGSCoefficientFitV1:
 
     def to_mapping(self) -> dict[str, Any]:
         return {
-            "schema_version": "BFGSCoefficientFitV1",
+            "schema_version": "LBFGSBCoefficientFitV1",
             "accepted": self.accepted,
             "optimizer_converged": self.optimizer_converged,
             "message": self.message,
@@ -217,7 +217,7 @@ def _loss_and_gradient(
 
 def _initial_vectors(
     coefficient_count: int,
-    config: BFGSConfigV1,
+    config: LBFGSBConfigV1,
     initial_guesses: Sequence[Sequence[float]] | None,
 ) -> tuple[FloatArray, ...]:
     import numpy as np
@@ -238,20 +238,20 @@ def _initial_vectors(
     return tuple(supplied)
 
 
-def fit_expression_coefficients_bfgs(
+def fit_expression_coefficients_lbfgsb(
     expression: sp.Expr,
     coefficients: Sequence[sp.Symbol],
     residual_terms: Sequence[CollocationResidualV1],
     *,
-    config: BFGSConfigV1 | None = None,
+    config: LBFGSBConfigV1 | None = None,
     initial_guesses: Sequence[Sequence[float]] | None = None,
-) -> BFGSCoefficientFitV1:
-    """Fit all free coefficients by minimizing weighted collocation MSE with BFGS."""
+) -> LBFGSBCoefficientFitV1:
+    """Fit all free coefficients by minimizing weighted collocation MSE with L-BFGS-B."""
 
     import numpy as np
     from scipy.optimize import minimize
 
-    selected_config = config or BFGSConfigV1()
+    selected_config = config or LBFGSBConfigV1()
     coefficient_tuple = tuple(coefficients)
     term_tuple = tuple(residual_terms)
     if not coefficient_tuple:
@@ -276,7 +276,7 @@ def fit_expression_coefficients_bfgs(
         outcome = minimize(
             objective,
             initial,
-            method="BFGS",
+            method="L-BFGS-B",
             jac=jacobian,
             options={
                 "maxiter": selected_config.max_iterations,
@@ -298,7 +298,7 @@ def fit_expression_coefficients_bfgs(
     fitted_expression = expression.xreplace(
         {coefficient: sp.Float(float(value)) for coefficient, value in assignments.items()}
     )
-    return BFGSCoefficientFitV1(
+    return LBFGSBCoefficientFitV1(
         accepted=bool(np.isfinite(final_loss) and final_loss <= selected_config.acceptance_loss),
         optimizer_converged=bool(best.success),
         message=str(best.message),
@@ -319,8 +319,8 @@ def fit_expression_coefficients_bfgs(
 
 
 __all__ = [
-    "BFGSCoefficientFitV1",
-    "BFGSConfigV1",
+    "LBFGSBCoefficientFitV1",
+    "LBFGSBConfigV1",
     "CollocationResidualV1",
-    "fit_expression_coefficients_bfgs",
+    "fit_expression_coefficients_lbfgsb",
 ]

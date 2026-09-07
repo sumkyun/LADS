@@ -660,7 +660,7 @@ def run_staged_experiment_direct(
                 "parseable executable expression using declared ARG symbols and fitted p symbols"
             ),
             "parameterization": (
-                "not enforced; coefficients and fixed/variable shape are left to BFGS"
+                "not enforced; coefficients and fixed/variable shape are left to L-BFGS-B"
             ),
             "complexity_and_topology_filters": (
                 "disabled except finite parser/runtime safeguards"

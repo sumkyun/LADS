@@ -1,6 +1,6 @@
 # LADS
 
-Minimal release code for the paper's **Ansatz → direct Atom → host BFGS fitting** model.
+Minimal release code for the paper's **Ansatz → direct Atom → host L-BFGS-B fitting** model.
 The repository contains only the model, its small symbolic replay engine, and the released
 public problem/validation files. No CDR research logs, paper sources, private data, checkpoints,
 or API keys are included.
@@ -15,7 +15,7 @@ python3 -m pip install -r requirements.txt
 
 ## Run
 
-The model uses OpenRouter. Set a key, then run all nine executable public cases:
+The model uses OpenRouter. Coefficients are fitted with deterministic multi-start CPU L-BFGS-B. Set a key, then run all nine executable public cases:
 
 ```bash
 export OPENROUTER_API_KEY=...
