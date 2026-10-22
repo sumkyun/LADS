@@ -1,56 +1,62 @@
-# LADS
+# LADS: LLM-guided Ansatz Discovery for Symbolic PDE Solutions
 
-Minimal release code for the paper's **Ansatz → direct Atom → host L-BFGS-B fitting** model.
-The repository contains only the model, its small symbolic replay engine, and the released
-public problem/validation files. No CDR research logs, paper sources, private data, checkpoints,
-or API keys are included.
+Code for the paper *LADS: LLM-guided Ansatz Discovery for Symbolic PDE Solutions*
+(Seom Kyun Song, Jin Kyu Jeong, Jae Yong Lee; Chung-Ang University).
+
+LADS finds a closed-form solution of a PDE from the equation and its initial and
+boundary conditions:
+
+1. **Ansatz generation.** An LLM proposes atom-free templates with open slots,
+   e.g. `u(x,t) = F1(x) + F2(t)`, which are checked symbolically.
+2. **Slot completion.** For a certified Ansatz, the LLM proposes parameterized atoms
+   for each slot (eight per request), e.g. `p1*ARG1 + p2`.
+3. **Fit and select.** L-BFGS fits the free coefficients to the PDE and condition
+   residuals. A candidate is returned once its validation loss is at most `1e-8`.
+   Otherwise the outcome is sent back to the next slot-completion request: either the
+   expression could not be used for computation, or it was computable but not accurate
+   enough.
+
+The LLM is called at most **eight times per problem** in total, and at most four
+candidates are fitted. If the cap is reached first, the fitted candidate with the
+lowest validation loss is returned.
 
 ## Setup
 
+Requirements: Linux, Python 3.13, [uv](https://docs.astral.sh/uv/), an NVIDIA GPU with
+CUDA 12 (fitting runs in float64 on the GPU), and an
+[OpenRouter](https://openrouter.ai) API key. The paper uses `google/gemini-2.5-flash`
+with temperature 0.
+
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python3 -m pip install -r requirements.txt
+uv sync --frozen
+# Let JAX find the CUDA libraries installed in the virtual environment.
+export LD_LIBRARY_PATH=$(ls -d "$PWD"/.venv/lib/python3.13/site-packages/nvidia/*/lib | tr '\n' ':')
+uv run --frozen pytest -q
 ```
 
 ## Run
 
-The model uses OpenRouter. Coefficients are fitted with deterministic multi-start CPU L-BFGS-B. Set a key, then run all nine executable public cases:
-
 ```bash
 export OPENROUTER_API_KEY=...
-python3 run.py --model google/gemini-2.5-flash
+uv run --frozen python run_lads.py problems/case_001.json
 ```
 
-Run one or more scalar cases:
+The result (`status`, `prediction`, `validation_loss`, number of LLM calls) is printed
+and written to `runs/case_001/result.json`, together with every request, raw response,
+and fit.
 
-```bash
-python3 run.py --case-ids burgers poisson1
+`problems/` contains the 27 problems of the paper: `case_001`–`case_020` are the
+manufactured problems and `case_101`–`case_107` are public problems following
+*Neuro-Symbolic AI for Analytical Solutions of Differential Equations*
+(arXiv:2502.01476). A problem file states only the PDE, the initial and boundary
+conditions, the domain, and the parameters; no reference solution is given to the method.
+
+## Layout
+
 ```
-
-Use another environment variable for the key or another output path when needed:
-
-```bash
-python3 run.py --credential-env MY_OPENROUTER_KEY \
-  --output results/poisson.json --case-ids poisson1
-```
-
-Check the bundled inputs without making an API request:
-
-```bash
-python3 run.py --dry-run
-```
-
-Results are written to `results/predictions.json` by default. The bundled nine cases are scalar host-validation inputs. They are condition-aware development
-inputs, not a blind or held-out benchmark.
-
-## Structure
-
-```text
-LADS/
-├── run.py                       # single execution entry point
-├── data/                        # released public inputs
-├── src/lads/                    # model and host validation
-├── src/pde_ansatz_discovery/    # minimal vendored symbolic replay engine
-└── tests/                       # release smoke tests
+run_lads.py   run LADS on one problem (8-call cap, 4-fit cap)
+src/          Ansatz and atom generation, symbolic checks, CUDA L-BFGS fitting
+tools/        problem loading, residuals, shared optimizer, OpenRouter transport
+problems/     27 problem definitions
+tests/        unit tests
 ```

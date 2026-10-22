@@ -5,12 +5,14 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "lads"
 version = "0.1.0"
-description = "Minimal release code for the LADS Ansatz-to-Atom model"
-requires-python = ">=3.10"
+description = "LADS: LLM-guided Ansatz Discovery for Symbolic PDE Solutions"
+requires-python = ">=3.13,<3.14"
 dependencies = [
   "numpy==2.2.6",
-  "scipy>=1.15,<2",
+  "scipy==1.18.1",
   "sympy==1.14.0",
+  "jax[cuda12]==0.6.2",
+  "optax==0.2.8",
 ]
 
 [tool.setuptools.packages.find]
@@ -18,7 +20,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 
 [tool.ruff]
 line-length = 100
@@ -26,3 +28,10 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
+
+[dependency-groups]
+dev = ["pytest==9.1.1", "ruff==0.16.6", "mypy==2.3.1"]
+
+# Keep the method code formatting as used for the reported results.
+[tool.ruff.lint.per-file-ignores]
+"src/**" = ["E501", "E731", "I001", "UP037", "B905"]

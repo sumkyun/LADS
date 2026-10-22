@@ -21,8 +21,23 @@ from .expressions import (
 )
 from .normalizer import add, divide, mul, negate, normalize, power, subtract
 
-SAFE_FUNCTIONS_V1 = frozenset({"sin", "cos", "tan", "exp", "log", "sqrt", "Abs"})
-DERIVATIVE_CALLS_V1 = frozenset({"D", "Derivative"})
+SAFE_FUNCTIONS_V1 = frozenset(
+    {
+        "Abs",
+        "atan",
+        "cos",
+        "cosh",
+        "exp",
+        "log",
+        "sech",
+        "sin",
+        "sinh",
+        "sqrt",
+        "tan",
+        "tanh",
+    }
+)
+DERIVATIVE_CALLS_V1 = frozenset({"D", "Derivative", "diff"})
 
 
 class PDEParseError(DiscoveryContractError):
@@ -239,6 +254,11 @@ class _IRBuilder(ast.NodeVisitor):
             return symbol(name, SymbolRoleV1.INDEPENDENT)
         if name in self.context.parameters:
             return symbol(name, SymbolRoleV1.PARAMETER)
+        # Exact named constants use existing safe function IR, never float literals.
+        if name == "pi":
+            return mul(rational(4), function("atan", rational(1)))
+        if name == "E":
+            return function("exp", rational(1))
         if "_" in name:
             field, suffix = name.split("_", 1)
             if field in self.context.dependent_variables:
@@ -311,20 +331,86 @@ class _IRBuilder(ast.NodeVisitor):
         if len(node.args) < 2:
             raise PDEParseError("derivative call requires expression and variables")
         expression = self.visit(node.args[0])
-        variables: list[str] = []
-        for argument in node.args[1:]:
-            if isinstance(argument, ast.Name) and argument.id in self.context.independent_variables:
-                variables.append(argument.id)
-            elif isinstance(argument, ast.Constant) and isinstance(argument.value, int) and variables:
-                count = argument.value
-                if isinstance(count, bool) or count < 1:
-                    raise PDEParseError("derivative multiplicity must be positive")
-                variables.extend([variables[-1]] * (count - 1))
+        specifications: list[tuple[str, int]] = []
+        local_order = 0
+        arguments = node.args[1:]
+        index = 0
+        while index < len(arguments):
+            argument = arguments[index]
+            if isinstance(argument, ast.Tuple):
+                variable, count = self._tuple_derivative_specification(argument)
+                index += 1
+            elif isinstance(argument, ast.Name):
+                variable = self._declared_derivative_variable(argument)
+                count = 1
+                if index + 1 < len(arguments) and isinstance(
+                    arguments[index + 1], ast.Constant
+                ):
+                    count = self._derivative_multiplicity(arguments[index + 1])
+                    index += 1
+                index += 1
             else:
                 raise PDEParseError("invalid derivative variable specification")
-        if len(variables) > self.limits.max_derivative_order:
+
+            # Bound multiplicities before materializing repeated variables.
+            if count > self.limits.max_derivative_order - local_order:
+                raise PDEParseError("derivative order exceeds limit")
+            local_order += count
+            specifications.append((variable, count))
+
+        if self._maximum_derivative_order(expression) > (
+            self.limits.max_derivative_order - local_order
+        ):
             raise PDEParseError("derivative order exceeds limit")
-        return derivative(expression, tuple(variables))
+
+        variables = tuple(
+            variable
+            for variable, count in specifications
+            for _ in range(count)
+        )
+        if expression.kind is ExpressionKindV1.DERIVATIVE:
+            return derivative(
+                expression.operands[0],
+                expression.derivative_variables + variables,
+            )
+        return derivative(expression, variables)
+
+    def _declared_derivative_variable(self, node: ast.Name) -> str:
+        if node.id not in self.context.independent_variables:
+            raise PDEParseError("invalid derivative variable specification")
+        return node.id
+
+    def _derivative_multiplicity(self, node: ast.AST) -> int:
+        if (
+            not isinstance(node, ast.Constant)
+            or isinstance(node.value, bool)
+            or not isinstance(node.value, int)
+        ):
+            raise PDEParseError("invalid derivative multiplicity")
+        if node.value < 1:
+            raise PDEParseError("derivative multiplicity must be positive")
+        return node.value
+
+    def _tuple_derivative_specification(self, node: ast.Tuple) -> tuple[str, int]:
+        if len(node.elts) != 2 or not isinstance(node.elts[0], ast.Name):
+            raise PDEParseError("invalid derivative variable specification")
+        variable = self._declared_derivative_variable(node.elts[0])
+        try:
+            count = self._derivative_multiplicity(node.elts[1])
+        except PDEParseError as exc:
+            raise PDEParseError("invalid derivative variable specification") from exc
+        return variable, count
+
+    def _maximum_derivative_order(self, expression: ExpressionIRV1) -> int:
+        if expression.kind is ExpressionKindV1.JET and expression.jet is not None:
+            return len(expression.jet.multi_index.variables)
+        nested = max(
+            (self._maximum_derivative_order(operand) for operand in expression.operands),
+            default=0,
+        )
+        if expression.kind is ExpressionKindV1.DERIVATIVE:
+            return len(expression.derivative_variables) + nested
+        return nested
 
 
 def parse_expression(

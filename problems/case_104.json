@@ -1,0 +1,1 @@
+{"boundary_conditions":[],"dependent_variables":["u"],"domain":{"t":["0","2"],"x":["0","1"],"y":["0","1"]},"independent_variables":["x","y","t"],"initial_conditions":[{"equation":"u(x,y,0)=sin(x)+sin(y)","kind":"equation"}],"parameters":{},"pde":["Derivative(u(x,y,t),t)+Derivative(u(x,y,t),x)+Derivative(u(x,y,t),y)=0"],"schema_version":"cdr.pde.problem.v1"}

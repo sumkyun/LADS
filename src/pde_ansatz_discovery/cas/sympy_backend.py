@@ -23,6 +23,7 @@ from ..ir import (
     rational,
     symbol,
 )
+from ..ir.parser import SAFE_FUNCTIONS_V1
 from ..models import BranchCoverageV1, DiscoveryProblemInputV1, ProofStatusV1
 from .backend import (
     BranchKindV1,
@@ -117,15 +118,7 @@ class SymPyBackendV1:
             )
         if kind is ExpressionKindV1.FUNCTION:
             arguments = tuple(self.to_sympy(item) for item in expression.operands)
-            if hasattr(sympy, expression.name) and expression.name in {
-                "sin",
-                "cos",
-                "tan",
-                "exp",
-                "log",
-                "sqrt",
-                "Abs",
-            }:
+            if expression.name in SAFE_FUNCTIONS_V1:
                 return getattr(sympy, expression.name)(*arguments)
             return sympy.Function(expression.name)(*arguments)
         if kind is ExpressionKindV1.DERIVATIVE:
