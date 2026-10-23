@@ -1,7 +1,7 @@
 # LADS: LLM-guided Ansatz Discovery for Symbolic PDE Solutions
 
 Code for the paper *LADS: LLM-guided Ansatz Discovery for Symbolic PDE Solutions*
-(Sum Kyun Song, Jinkyu Jeong, Jae Yong Lee; Chung-Ang University).
+(Sum Kyun Song, Jin Kyu Jeong, Jae Yong Lee; Chung-Ang University).
 
 LADS finds a closed-form solution of a PDE from the equation and its initial and
 boundary conditions:
